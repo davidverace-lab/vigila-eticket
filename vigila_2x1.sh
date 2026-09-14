@@ -20,7 +20,10 @@ avisar(){ # $1 = título, $2 = mensaje
     -d "$m" "https://ntfy.sh/$TOPIC")
   log "ntfy push: HTTP $code"
   log "AVISO: $t | $m"
+  printf '%s\n%s\n' "$t" "$m" >> alerta.txt   # el workflow marca la corrida como fallida para que GitHub mande correo
 }
+
+if [ "${PRUEBA:-}" = "si" ]; then avisar "PRUEBA de aviso - Destino Dos Equis" "Esto es una prueba del sistema de alertas. Si la ves como correo o notificacion, funciona."; fi
 
 # 1) Token de invitado (igual que lo hace la página)
 TOKEN=$(curl -s --max-time 30 -A "$UA" -X POST -H "Referer: $URL" \
