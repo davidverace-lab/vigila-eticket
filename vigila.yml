@@ -21,6 +21,8 @@ jobs:
       - name: Revisar eticket
         env:
           PRUEBA: ${{ github.event.inputs.prueba }}
+          WA_PHONE: ${{ secrets.WA_PHONE }}
+          WA_KEY: ${{ secrets.WA_KEY }}
         run: bash vigila_2x1.sh
 
       - name: Guardar estado (para no repetir avisos)

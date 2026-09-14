@@ -19,6 +19,13 @@ avisar(){ # $1 = título, $2 = mensaje
     -H "Title: $t" -H "Priority: high" -H "Tags: tada,ticket" -H "Click: $URL" \
     -d "$m" "https://ntfy.sh/$TOPIC")
   log "ntfy push: HTTP $code"
+  # WhatsApp via CallMeBot (si hay clave configurada en los secretos del repo)
+  if [ -n "${WA_PHONE:-}" ] && [ -n "${WA_KEY:-}" ]; then
+    local texto; texto=$(python3 -c "import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1]))" "$t
+$m")
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 40 "https://api.callmebot.com/whatsapp.php?phone=$WA_PHONE&text=$texto&apikey=$WA_KEY")
+    log "whatsapp callmebot: HTTP $code"
+  fi
   log "AVISO: $t | $m"
   printf '%s\n%s\n' "$t" "$m" >> alerta.txt   # el workflow marca la corrida como fallida para que GitHub mande correo
 }
