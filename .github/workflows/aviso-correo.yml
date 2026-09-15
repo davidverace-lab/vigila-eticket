@@ -1,0 +1,20 @@
+name: AVISO eticket Destino Dos Equis
+
+on:
+  workflow_dispatch:
+    inputs:
+      mensaje:
+        description: "Texto del aviso"
+        required: true
+
+jobs:
+  avisar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Este paso falla a proposito para que GitHub mande correo"
+        env:
+          MENSAJE: ${{ inputs.mensaje }}
+        run: |
+          echo "::error::$MENSAJE"
+          echo "$MENSAJE"
+          exit 1
