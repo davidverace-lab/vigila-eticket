@@ -2,7 +2,7 @@ name: ALERTA eticket Destino Dos Equis
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # cada 15 minutos (GitHub a veces lo retrasa unos minutos)
+    - cron: "3,18,33,48 * * * *"   # cada 15 min, fuera de los minutos saturados de GitHub
   workflow_dispatch:
     inputs:
       prueba:
