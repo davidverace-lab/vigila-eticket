@@ -19,6 +19,8 @@ jobs:
       WA_PHONE: ${{ secrets.WA_PHONE }}
       WA_KEY: ${{ secrets.WA_KEY }}
       GH_TOKEN: ${{ github.token }}
+      INTERVALO_SEG: "600"  # segundos entre revisiones (600 = 10 minutos)
+      LATIDO: "si"          # "si" = mensaje discreto en cada revisión; "no" = solo alertas
     steps:
       - uses: actions/checkout@v4
 
@@ -37,7 +39,7 @@ jobs:
             if [ -f alerta.txt ]; then
               gh workflow run aviso-correo.yml -f mensaje="$(head -c 900 alerta.txt | tr '\n' ' ')" || true
             fi
-            sleep 600
+            sleep ${INTERVALO_SEG:-600}
           done
 
       - name: Encadenar la siguiente corrida

@@ -26,6 +26,7 @@ $m")
     code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 40 "https://api.callmebot.com/whatsapp.php?phone=$WA_PHONE&text=$texto&apikey=$WA_KEY")
     log "whatsapp callmebot: HTTP $code"
   fi
+  HUBO_AVISO=1
   log "AVISO: $t | $m"
   printf '%s\n%s\n' "$t" "$m" >> alerta.txt   # el workflow marca la corrida como fallida para que GitHub mande correo
 }
@@ -70,3 +71,17 @@ if [ -n "$PRECIOS" ]; then
 fi
 
 log "OK: $(printf '%s' "$PRECIOS" | tr '\n' ';')"
+
+# --- Latido discreto: "sigo vigilando" (solo si no hubo aviso fuerte en esta corrida) ---
+if [ "${LATIDO:-}" = "si" ] && [ -z "${HUBO_AVISO:-}" ]; then
+  hora=$(TZ=America/Mexico_City date '+%H:%M')
+  resumen=$(printf '%s' "$PRECIOS" | tr '\n' ';')
+  [ -z "$resumen" ] && resumen="(no pude leer precios en esta pasada)"
+  latido="✓ $hora sigo vigilando Destino Dos Equis. Sin cambios: $resumen"
+  curl -s -o /dev/null --max-time 30 -H "Title: Sigo vigilando" -H "Priority: min" -H "Tags: white_check_mark" -d "$latido" "https://ntfy.sh/$TOPIC"
+  if [ -n "${WA_PHONE:-}" ] && [ -n "${WA_KEY:-}" ]; then
+    texto=$(python3 -c "import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1]))" "$latido")
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 40 "https://api.callmebot.com/whatsapp.php?phone=$WA_PHONE&text=$texto&apikey=$WA_KEY")
+    log "latido whatsapp: HTTP $code"
+  fi
+fi
