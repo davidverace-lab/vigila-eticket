@@ -1,0 +1,45 @@
+name: Vigila continuo eticket
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: vigila-continuo
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  vigila:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      WA_PHONE: ${{ secrets.WA_PHONE }}
+      WA_KEY: ${{ secrets.WA_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vigilar cada 10 minutos durante 5.5 horas
+        run: |
+          git config user.name "vigila-bot"
+          git config user.email "vigila-bot@users.noreply.github.com"
+          fin=$((SECONDS + 330*60))
+          while [ $SECONDS -lt $fin ]; do
+            rm -f alerta.txt
+            bash vigila_2x1.sh || true
+            git add -A estado
+            if ! git diff --cached --quiet; then
+              git commit -qm "estado $(date -u +%FT%TZ)" && (git pull -q --rebase || true) && (git push -q || true)
+            fi
+            if [ -f alerta.txt ]; then
+              gh workflow run aviso-correo.yml -f mensaje="$(head -c 900 alerta.txt | tr '\n' ' ')" || true
+            fi
+            sleep 600
+          done
+
+      - name: Encadenar la siguiente corrida
+        if: always()
+        run: gh workflow run vigila-continuo.yml
